@@ -1,36 +1,83 @@
-# Quantum Mechanical Keyboard Firmware
+# Custom QMK Firmware for NuPhy Air96 V2 (ANSI)
 
-[![Current Version](https://img.shields.io/github/tag/qmk/qmk_firmware.svg)](https://github.com/qmk/qmk_firmware/tags)
-[![Discord](https://img.shields.io/discord/440868230475677696.svg)](https://discord.gg/Uq7gcHh)
-[![Docs Status](https://img.shields.io/badge/docs-ready-orange.svg)](https://docs.qmk.fm)
-[![GitHub contributors](https://img.shields.io/github/contributors/qmk/qmk_firmware.svg)](https://github.com/qmk/qmk_firmware/pulse/monthly)
-[![GitHub forks](https://img.shields.io/github/forks/qmk/qmk_firmware.svg?style=social&label=Fork)](https://github.com/qmk/qmk_firmware/)
+This repository contains a modified version of the official NuPhy QMK firmware, optimized for custom status indications and complete compatibility with the **VIA Configurator (V3 API)**.
 
-This is a keyboard firmware based on the [tmk\_keyboard firmware](https://github.com/tmk/tmk_keyboard) with some useful features for Atmel AVR and ARM controllers, and more specifically, the [OLKB product line](https://olkb.com), the [ErgoDox EZ](https://ergodox-ez.com) keyboard, and the Clueboard product line.
+---
 
-## Documentation
+## 🚀 Key Improvements & Source Code
 
-* [See the official documentation on docs.qmk.fm](https://docs.qmk.fm)
+### 1. Per-Key RGB Status Indicators (`keymap.c`)
+Moved the physical **CapsLock** and **NumLock** indicators away from the default sidebar patterns directly onto their respective mechanical keys using the advanced matrix rendering layer. 
 
-The docs are powered by [Docsify](https://docsify.js.org/) and hosted on [GitHub](/docs/). They are also viewable offline; see [Previewing the Documentation](https://docs.qmk.fm/#/contributing?id=previewing-the-documentation) for more details.
+The following snippet was appended to the absolute end of `keyboards/nuphy/air96_v2/ansi/keymaps/via/keymap.c`:
 
-You can request changes by making a fork and opening a [pull request](https://github.com/qmk/qmk_firmware/pulls), or by clicking the "Edit this page" link at the bottom of any page.
+```c
+#ifdef RGB_MATRIX_ENABLE
+bool rgb_matrix_indicators_user(void) {
+    // 1. Caps Lock (Forces solid Red backlight on CapsLock key when active)
+    if (host_keyboard_led_state().caps_lock) {
+        rgb_matrix_set_color(55, 255, 0, 0); 
+    }
 
-## Supported Keyboards
+    // 2. Num Lock (Inverse Logic: Forces solid Red backlight on NumLock key when Numpad is OFF)
+    if (!host_keyboard_led_state().num_lock) {
+        rgb_matrix_set_color(33, 255, 0, 0); 
+    }
+    return true;
+}
+#endif
+```
 
-* [Planck](/keyboards/planck/)
-* [Preonic](/keyboards/preonic/)
-* [ErgoDox EZ](/keyboards/ergodox_ez/)
-* [Clueboard](/keyboards/clueboard/)
-* [Cluepad](/keyboards/clueboard/17/)
-* [Atreus](/keyboards/atreus/)
+### 2. Intelligent Sidebar Connection Indicator (`side.c`)
+Reprogrammed the left Side LED strip to function exclusively as a hardware connection status monitor, completely removing any flashing loops linked to CapsLock.
 
-The project also includes community support for [lots of other keyboards](/keyboards/).
+The original function `sys_led_show(void)` inside `keyboards/nuphy/air96_v2/ansi/side.c` was fully overwritten with the following logic:
 
-## Maintainers
+```c
+void sys_led_show(void)
+{
+    if (dev_info.link_mode == LINK_USB) {
+        // 1. WIRED MODE -> Do nothing, let the standard custom RGB matrix animations run smoothly
+    }
+    else if (dev_info.link_mode == LINK_RF_24) {
+        // 2. 2.4Ghz WIRELESS DONGLE -> Enforce static Orange color using active brightness level
+        set_left_rgb(SIDE_BLINK_LIGHT, 127, 0x00);
+    }
+    else {
+        // 3. BLUETOOTH MODE (Any active profile) -> Enforce static Blue color
+        set_left_rgb(0x00, 0x00, SIDE_BLINK_LIGHT);
+    }
+}
+```
 
-QMK is developed and maintained by Jack Humbert of OLKB with contributions from the community, and of course, [Hasu](https://github.com/tmk). The OLKB product firmwares are maintained by [Jack Humbert](https://github.com/jackhumbert), the Ergodox EZ by [ZSA Technology Labs](https://github.com/zsa), the Clueboard by [Zach White](https://github.com/skullydazed), and the Atreus by [Phil Hagelberg](https://github.com/technomancy).
+---
 
-## Official Website
+## 🛠️ How to Compile and Flash
 
-[qmk.fm](https://qmk.fm) is the official website of QMK, where you can find links to this page, the documentation, and the keyboards supported by QMK.
+### 1. Build Command (QMK MSYS)
+Ensure you are operating inside the dedicated `via` keymap folder to maintain complete VIA support and ProductID alignment:
+```bash
+qmk compile -kb nuphy/air96_v2/ansi -km via
+```
+
+### 2. Flashing to Hardware
+1. Launch **QMK Toolbox**.
+2. Select the compiled binary file: `nuphy_air96_v2_ansi_via.bin`.
+3. Set the Microcontroller profile target to: `STM32F072`.
+4. Power the keyboard to **Wired mode**, disconnect the cable, press and hold the physical **`Esc` key**, and plug the cable back in to trigger DFU bootloader mode.
+5. Click **Flash**.
+
+⚠️ **CRITICAL STEP:** Immediately after flashing completes, perform a hardware EEPROM reset by holding **`FN + [`** for 3 seconds. This forces the microcontroller to build fresh data maps required by VIA.
+
+### 📥 3. Connecting to VIA Configurator
+1. Open **[usevia.app](https://usevia.app)** in a compatible web browser.
+2. Go to **Settings** (Gear icon) and toggle **Show Design tab**.
+3. Open the **Design tab** (Paintbrush icon) and click **Load**.
+4. Select the custom definitions template file located inside your local firmware workspace directory:
+   `qmk_firmware/keyboards/nuphy/air96_v2/ansi/keymaps/via/via3.json`
+5. Go back to the **Configure** tab and click **Authorize device** to manage your layouts.
+
+---
+
+## 🤖 Credits & Collaboration
+All code modifications, logic routing enhancements (such as the inverse NumLock system), and QMK MSYS setup configurations within this repository were researched, implemented, and refined with the collaborative assistance of **Google Gemini AI**.
