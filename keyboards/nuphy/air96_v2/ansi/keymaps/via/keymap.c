@@ -176,3 +176,18 @@ const is31_led PROGMEM g_is31_leds[RGB_MATRIX_LED_COUNT] = {
     {1, A_9,    B_9,    C_9},       
     {1, A_10,   B_10,   C_10}       
 };
+
+#ifdef RGB_MATRIX_ENABLE
+bool rgb_matrix_indicators_user(void) {
+    // 1. Caps Lock (Červená, když je ZAPNUTÝ)
+    if (host_keyboard_led_state().caps_lock) {
+        rgb_matrix_set_color(55, 255, 0, 0); 
+    }
+
+    // 2. Num Lock (Inverzní: Červená, když je VYPNUTÝ)
+    if (!host_keyboard_led_state().num_lock) {
+        rgb_matrix_set_color(33, 255, 0, 0); 
+    }
+    return true;
+}
+#endif

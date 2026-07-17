@@ -298,14 +298,15 @@ void sleep_sw_led_show(void)
 void sys_led_show(void)
 {
     if (dev_info.link_mode == LINK_USB) {
-        if (host_keyboard_led_state().caps_lock) {
-            set_left_rgb(0X00, SIDE_BLINK_LIGHT, SIDE_BLINK_LIGHT);
-        }
+        // 1. WIRED (Kabel) -> Necháme běžet standardní RGB matici (kód nic nepřepisuje)
+    }
+    else if (dev_info.link_mode == LINK_RF_24) {
+        // 2. 2.4G DONGLE -> Oranžová lišta
+        set_left_rgb(SIDE_BLINK_LIGHT, 127, 0x00);
     }
     else {
-        if (dev_info.rf_led & 0x02) {
-            set_left_rgb(0X00, SIDE_BLINK_LIGHT, SIDE_BLINK_LIGHT);
-        }
+        // 3. BLUETOOTH -> Čistě modrá lišta
+        set_left_rgb(0x00, 0x00, SIDE_BLINK_LIGHT);
     }
 }
 
