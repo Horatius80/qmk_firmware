@@ -74,7 +74,7 @@ qmk compile -kb nuphy/air96_v2/ansi -km via
 2. Go to **Settings** (Gear icon) and toggle **Show Design tab**.
 3. Open the **Design tab** (Paintbrush icon) and click **Load**.
 4. Select the custom definitions template file located inside your local firmware workspace directory:
-   `qmk_firmware/keyboards/nuphy/air96_v2/ansi/keymaps/via/via3.json`
+   `qmk_firmware/keyboards/nuphy/air96_v2/ansi/keymaps/via/NuPhy Air96 V2 via3.json`
 5. Go back to the **Configure** tab and click **Authorize device** to manage your layouts.
 
 ---
