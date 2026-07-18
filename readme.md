@@ -34,9 +34,10 @@ bool rgb_matrix_indicators_user(void) {
     return true;
 }
 #endif
-Option B: Blinking Indicator (Located in keymaps/via_blink/keymap.c)
+```
 
-C
+**Option B: Blinking Indicator (Located in `keymaps/via_blink/keymap.c`)**
+```c
 #ifdef RGB_MATRIX_ENABLE
 bool rgb_matrix_indicators_user(void) {
     // 1. Caps Lock (Blinking with maximum red brightness)
@@ -58,12 +59,14 @@ bool rgb_matrix_indicators_user(void) {
     return true;
 }
 #endif
-2. Intelligent Sidebar Connection Indicator (side.c)
+```
+
+### 2. Intelligent Sidebar Connection Indicator (`side.c`)
 Reprogrammed the left Side LED strip to function exclusively as a hardware connection status monitor, completely removing any flashing loops linked to CapsLock.
 
-The original function sys_led_show(void) inside keyboards/nuphy/air96_v2/ansi/side.c was fully overwritten with the following logic:
+The original function `sys_led_show(void)` inside `keyboards/nuphy/air96_v2/ansi/side.c` was fully overwritten with the following logic:
 
-C
+```c
 void sys_led_show(void)
 {
     if (dev_info.link_mode == LINK_USB) {
@@ -78,42 +81,43 @@ void sys_led_show(void)
         set_left_rgb(0x00, 0x00, SIDE_BLINK_LIGHT);
     }
 }
-🛠️ How to Compile and Flash
-1. Build Commands (QMK MSYS)
-Choose the command based on your preferred CapsLock behavior. Ensure you compile the designated via or via_blink folder to maintain complete VIA support and ProductID alignment.
+```
 
-For the static CapsLock version:
+---
 
-Bash
+## 🛠️ How to Compile and Flash
+
+### 1. Build Commands (QMK MSYS)
+Choose the command based on your preferred CapsLock behavior. Ensure you compile the designated `via` or `via_blink` folder to maintain complete VIA support and ProductID alignment.
+
+**For the static CapsLock version:**
+```bash
 qmk compile -kb nuphy/air96_v2/ansi -km via
-For the blinking CapsLock version:
+```
 
-Bash
+**For the blinking CapsLock version:**
+```bash
 qmk compile -kb nuphy/air96_v2/ansi -km via_blink
-2. Flashing to Hardware
-Launch QMK Toolbox.
+```
 
-Select the compiled binary file: nuphy_air96_v2_ansi_via.bin (or via_blink.bin).
+### 2. Flashing to Hardware
+1. Launch **QMK Toolbox**.
+2. Select the compiled binary file: `nuphy_air96_v2_ansi_via.bin` (or `via_blink.bin`).
+3. Set the Microcontroller profile target to: `STM32F072`.
+4. Power the keyboard to **Wired mode**, disconnect the cable, press and hold the physical **`Esc` key**, and plug the cable back in to trigger DFU bootloader mode.
+5. Click **Flash**.
 
-Set the Microcontroller profile target to: STM32F072.
+⚠️ **CRITICAL STEP:** Immediately after flashing completes, perform a hardware EEPROM reset by holding **`FN + [`** for 3 seconds. This forces the microcontroller to build fresh data maps required by VIA.
 
-Power the keyboard to Wired mode, disconnect the cable, press and hold the physical Esc key, and plug the cable back in to trigger DFU bootloader mode.
+### 📥 3. Connecting to VIA Configurator
+1. Open **[usevia.app](https://usevia.app)** in a compatible web browser.
+2. Go to **Settings** (Gear icon) and toggle **Show Design tab**.
+3. Open the **Design tab** (Paintbrush icon) and click **Load**.
+4. Select the custom definitions template file located inside your local firmware workspace directory:
+   `qmk_firmware/keyboards/nuphy/air96_v2/ansi/keymaps/via/NuPhy Air96 V2 via3.json`
+5. Go back to the **Configure** tab and click **Authorize device** to manage your layouts.
 
-Click Flash.
+---
 
-⚠️ CRITICAL STEP: Immediately after flashing completes, perform a hardware EEPROM reset by holding FN + [ for 3 seconds. This forces the microcontroller to build fresh data maps required by VIA.
-
-📥 3. Connecting to VIA Configurator
-Open usevia.app in a compatible web browser.
-
-Go to Settings (Gear icon) and toggle Show Design tab.
-
-Open the Design tab (Paintbrush icon) and click Load.
-
-Select the custom definitions template file located inside your local firmware workspace directory:
-qmk_firmware/keyboards/nuphy/air96_v2/ansi/keymaps/via/NuPhy Air96 V2 via3.json
-
-Go back to the Configure tab and click Authorize device to manage your layouts.
-
-🤖 Credits & Collaboration
-All code modifications, logic routing enhancements (such as the inverse NumLock system), and QMK MSYS setup configurations within this repository were researched, implemented, and refined with the collaborative assistance of Google Gemini AI.
+## 🤖 Credits & Collaboration
+All code modifications, logic routing enhancements (such as the inverse NumLock system), and QMK MSYS setup configurations within this repository were researched, implemented, and refined with the collaborative assistance of **Google Gemini AI**.
