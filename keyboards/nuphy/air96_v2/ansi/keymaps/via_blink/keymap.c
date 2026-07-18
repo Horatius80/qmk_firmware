@@ -179,18 +179,18 @@ const is31_led PROGMEM g_is31_leds[RGB_MATRIX_LED_COUNT] = {
 
 #ifdef RGB_MATRIX_ENABLE
 bool rgb_matrix_indicators_user(void) {
-    // 1. Caps Lock (Blikání s maximální červenou)
+    // 1. Caps Lock (Blinking with maximum red brightness)
     if (host_keyboard_led_state().caps_lock) {
-        // timer_read() % 1000 vytvoří smyčku o délce 1 sekundy (1000 ms)
-        // Dioda bude 500 ms svítit naplno a 500 ms bude zcela zhasnutá
+        // timer_read() % 1000 creates a 1-second loop (1000 ms)
+        // The LED will be fully lit for 500 ms and completely off for 500 ms
         if (timer_read() % 1000 < 500) {
-            rgb_matrix_set_color(55, 255, 0, 0); // Maximální jas červené
+            rgb_matrix_set_color(55, 255, 0, 0); // Maximum red brightness
         } else {
-            rgb_matrix_set_color(55, 0, 0, 0);   // Vynucené zhasnutí (aby neprosvítal podklad)
+            rgb_matrix_set_color(55, 0, 0, 0);   // Force turn off (to override the underlying RGB effect)
         }
     }
 
-    // 2. Num Lock (Inverzní: svítí červeně, když je vypnutý - beze změny)
+    // 2. Num Lock (Inverse: Red directly on the Num Lock key - Index 33, when OFF)
     if (!host_keyboard_led_state().num_lock) {
         rgb_matrix_set_color(33, 255, 0, 0); 
     }

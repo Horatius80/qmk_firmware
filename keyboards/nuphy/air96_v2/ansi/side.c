@@ -298,14 +298,14 @@ void sleep_sw_led_show(void)
 void sys_led_show(void)
 {
     if (dev_info.link_mode == LINK_USB) {
-        // 1. WIRED (Kabel) -> Necháme běžet standardní RGB matici (kód nic nepřepisuje)
+        // 1. WIRED -> Keep standard RGB matrix effects running (no overrides)
     }
     else if (dev_info.link_mode == LINK_RF_24) {
-        // 2. 2.4G DONGLE -> Oranžová lišta
+        // 2. 2.4G DONGLE -> Solid orange side light
         set_left_rgb(SIDE_BLINK_LIGHT, 127, 0x00);
     }
     else {
-        // 3. BLUETOOTH -> Čistě modrá lišta
+        // 3. BLUETOOTH -> Solid blue side light
         set_left_rgb(0x00, 0x00, SIDE_BLINK_LIGHT);
     }
 }

@@ -4,13 +4,21 @@ This repository contains a modified version of the official NuPhy QMK firmware, 
 
 ---
 
+## 📂 Available Keymaps
+
+We maintain two separate keymap directories depending on your preferred CapsLock behavior. Both include the custom sidebar logic and inverse NumLock indicator.
+
+* **`via`**: The CapsLock key glows with a **static** red color when active.
+* **`via_blink`**: The CapsLock key **blinks** red (1 Hz frequency) when active to provide a more noticeable warning.
+
+---
+
 ## 🚀 Key Improvements & Source Code
 
 ### 1. Per-Key RGB Status Indicators (`keymap.c`)
 Moved the physical **CapsLock** and **NumLock** indicators away from the default sidebar patterns directly onto their respective mechanical keys using the advanced matrix rendering layer. 
 
-The following snippet was appended to the absolute end of `keyboards/nuphy/air96_v2/ansi/keymaps/via/keymap.c`:
-
+**Option A: Static Indicator (Located in `keymaps/via/keymap.c`)**
 ```c
 #ifdef RGB_MATRIX_ENABLE
 bool rgb_matrix_indicators_user(void) {
@@ -26,14 +34,36 @@ bool rgb_matrix_indicators_user(void) {
     return true;
 }
 #endif
-```
+Option B: Blinking Indicator (Located in keymaps/via_blink/keymap.c)
 
-### 2. Intelligent Sidebar Connection Indicator (`side.c`)
+C
+#ifdef RGB_MATRIX_ENABLE
+bool rgb_matrix_indicators_user(void) {
+    // 1. Caps Lock (Blinking with maximum red brightness)
+    if (host_keyboard_led_state().caps_lock) {
+        // timer_read() % 1000 creates a 1-second loop (1000 ms)
+        // The LED will be fully lit for 500 ms and completely off for 500 ms
+        if (timer_read() % 1000 < 500) {
+            rgb_matrix_set_color(55, 255, 0, 0); // Maximum red brightness
+        } else {
+            rgb_matrix_set_color(55, 0, 0, 0);   // Force turn off (to override the underlying RGB effect)
+        }
+    }
+
+    // 2. Num Lock (Inverse Logic: Forces solid Red backlight on NumLock key when Numpad is OFF)
+    if (!host_keyboard_led_state().num_lock) {
+        rgb_matrix_set_color(33, 255, 0, 0); 
+    }
+    
+    return true;
+}
+#endif
+2. Intelligent Sidebar Connection Indicator (side.c)
 Reprogrammed the left Side LED strip to function exclusively as a hardware connection status monitor, completely removing any flashing loops linked to CapsLock.
 
-The original function `sys_led_show(void)` inside `keyboards/nuphy/air96_v2/ansi/side.c` was fully overwritten with the following logic:
+The original function sys_led_show(void) inside keyboards/nuphy/air96_v2/ansi/side.c was fully overwritten with the following logic:
 
-```c
+C
 void sys_led_show(void)
 {
     if (dev_info.link_mode == LINK_USB) {
@@ -48,36 +78,42 @@ void sys_led_show(void)
         set_left_rgb(0x00, 0x00, SIDE_BLINK_LIGHT);
     }
 }
-```
+🛠️ How to Compile and Flash
+1. Build Commands (QMK MSYS)
+Choose the command based on your preferred CapsLock behavior. Ensure you compile the designated via or via_blink folder to maintain complete VIA support and ProductID alignment.
 
----
+For the static CapsLock version:
 
-## 🛠️ How to Compile and Flash
-
-### 1. Build Command (QMK MSYS)
-Ensure you are operating inside the dedicated `via` keymap folder to maintain complete VIA support and ProductID alignment:
-```bash
+Bash
 qmk compile -kb nuphy/air96_v2/ansi -km via
-```
+For the blinking CapsLock version:
 
-### 2. Flashing to Hardware
-1. Launch **QMK Toolbox**.
-2. Select the compiled binary file: `nuphy_air96_v2_ansi_via.bin`.
-3. Set the Microcontroller profile target to: `STM32F072`.
-4. Power the keyboard to **Wired mode**, disconnect the cable, press and hold the physical **`Esc` key**, and plug the cable back in to trigger DFU bootloader mode.
-5. Click **Flash**.
+Bash
+qmk compile -kb nuphy/air96_v2/ansi -km via_blink
+2. Flashing to Hardware
+Launch QMK Toolbox.
 
-⚠️ **CRITICAL STEP:** Immediately after flashing completes, perform a hardware EEPROM reset by holding **`FN + [`** for 3 seconds. This forces the microcontroller to build fresh data maps required by VIA.
+Select the compiled binary file: nuphy_air96_v2_ansi_via.bin (or via_blink.bin).
 
-### 📥 3. Connecting to VIA Configurator
-1. Open **[usevia.app](https://usevia.app)** in a compatible web browser.
-2. Go to **Settings** (Gear icon) and toggle **Show Design tab**.
-3. Open the **Design tab** (Paintbrush icon) and click **Load**.
-4. Select the custom definitions template file located inside your local firmware workspace directory:
-   `qmk_firmware/keyboards/nuphy/air96_v2/ansi/keymaps/via/NuPhy Air96 V2 via3.json`
-5. Go back to the **Configure** tab and click **Authorize device** to manage your layouts.
+Set the Microcontroller profile target to: STM32F072.
 
----
+Power the keyboard to Wired mode, disconnect the cable, press and hold the physical Esc key, and plug the cable back in to trigger DFU bootloader mode.
 
-## 🤖 Credits & Collaboration
-All code modifications, logic routing enhancements (such as the inverse NumLock system), and QMK MSYS setup configurations within this repository were researched, implemented, and refined with the collaborative assistance of **Google Gemini AI**.
+Click Flash.
+
+⚠️ CRITICAL STEP: Immediately after flashing completes, perform a hardware EEPROM reset by holding FN + [ for 3 seconds. This forces the microcontroller to build fresh data maps required by VIA.
+
+📥 3. Connecting to VIA Configurator
+Open usevia.app in a compatible web browser.
+
+Go to Settings (Gear icon) and toggle Show Design tab.
+
+Open the Design tab (Paintbrush icon) and click Load.
+
+Select the custom definitions template file located inside your local firmware workspace directory:
+qmk_firmware/keyboards/nuphy/air96_v2/ansi/keymaps/via/NuPhy Air96 V2 via3.json
+
+Go back to the Configure tab and click Authorize device to manage your layouts.
+
+🤖 Credits & Collaboration
+All code modifications, logic routing enhancements (such as the inverse NumLock system), and QMK MSYS setup configurations within this repository were researched, implemented, and refined with the collaborative assistance of Google Gemini AI.

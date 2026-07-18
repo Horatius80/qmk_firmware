@@ -179,12 +179,12 @@ const is31_led PROGMEM g_is31_leds[RGB_MATRIX_LED_COUNT] = {
 
 #ifdef RGB_MATRIX_ENABLE
 bool rgb_matrix_indicators_user(void) {
-    // 1. Caps Lock (Červená, když je ZAPNUTÝ)
+    // 1. Caps Lock (Red directly on the Caps Lock key - Index 55, when ON)
     if (host_keyboard_led_state().caps_lock) {
         rgb_matrix_set_color(55, 255, 0, 0); 
     }
 
-    // 2. Num Lock (Inverzní: Červená, když je VYPNUTÝ)
+    // 2. Num Lock (Inverse: Red directly on the Num Lock key - Index 33, when OFF)
     if (!host_keyboard_led_state().num_lock) {
         rgb_matrix_set_color(33, 255, 0, 0); 
     }
